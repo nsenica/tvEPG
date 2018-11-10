@@ -104,8 +104,6 @@
 # 38,MTV Portugal
 # 403,MTV Portugal HD
 # 69,Melody Zen. TV
-# 58,Motors TV
-# 364,Motors TV HD
 # 63,NGC Wild
 # 360,NHK WORLD TV
 # 36,Nat Geo
@@ -246,11 +244,12 @@ def getEPG(items, nr_days):
 
     while sDate < eDate:
         link = url.format(",".join(provCodes.keys()),sDate.strftime("%Y"),sDate.strftime("%m"),sDate.strftime("%d"))
+        #print(link)
         sDate += delta
 
         content = urllib.request.urlopen(link)
         if content.getcode() != 200: continue
-        myfile = content.read()
+        myfile = content.read().decode('utf8')
         try:
             myfile = json.loads(myfile)
         except ValueError:

@@ -10,7 +10,7 @@ This script is written in Python3 and produces a XMLTV compatible xml file, with
 
 Some providers depend on external libraries, so you'll need to install the following:
 
-`pip3 install beautifulsoup`
+`pip3 install beautifulsoup4`
 
 Then `git clone` the repository and check the Usage section below.
 

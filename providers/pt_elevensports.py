@@ -43,9 +43,9 @@ def getEPG(list, nrDays):
                 continue
 
             if content.getcode() != 200: continue
-            myfile = content.read()
-            myfile = myfile.replace(b'handleEPGCallback(',b'')
-            myfile = myfile.rsplit(b')', 1)[0]
+            myfile = content.read().decode('utf8')
+            myfile = myfile.replace('handleEPGCallback(','')
+            myfile = myfile.rsplit(')', 1)[0]
             try:
                 myfile = json.loads(myfile)
             except ValueError:
