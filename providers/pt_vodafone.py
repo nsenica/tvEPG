@@ -233,13 +233,20 @@ def getEPG(items, nr_days):
     provCodes = defaultdict(list)
     xmltv = XMLTV()
 
+    supportedChannels = _getSupportedChannels()
+    #print(supportedChannels)
+
     for item in items:
 
-        for channelInfo in item.getChannelList():
-            channel = Channel(channelInfo.getId(), channelInfo.getDisplayName(), "pt", channelInfo.getIconSrc())
-            channel.setUrl(baseUrl)
-            xmltv.addChannel(channel)
-            provCodes[item.getProviderCode()].append(channelInfo.getId())
+        if (supportedChannels != None and item.getProviderCode() in supportedChannels):
+            for channelInfo in item.getChannelList():
+
+                channel = Channel(channelInfo.getId(), channelInfo.getDisplayName(), "pt", channelInfo.getIconSrc())
+                channel.setUrl(baseUrl)
+                xmltv.addChannel(channel)
+                provCodes[item.getProviderCode()].append(channelInfo.getId())
+        else:
+            print("Vodafone: {0} - Channel id not available.".format(item.getProviderCode()))
 
 
     while sDate < eDate:
@@ -269,3 +276,22 @@ def getEPG(items, nr_days):
                     xmltv.addProgramme(p)
 
     return xmltv
+
+def _getSupportedChannels():
+
+    url = "https://tvnetvoz.vodafone.pt/sempre-consigo/datajson/epg/channels.jsp";
+
+    channels = set()
+
+    content = urllib.request.urlopen(url)
+    if content.getcode() != 200: return None
+    myfile = content.read().decode('utf8')
+    try:
+        myfile = json.loads(myfile)
+    except ValueError:
+        return None
+
+    for channel in myfile["result"]["channels"]:
+        channels.add(channel["id"])
+
+    return channels

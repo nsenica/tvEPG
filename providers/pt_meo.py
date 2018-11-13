@@ -26,14 +26,20 @@ def getEPG(list, nr_days):
     if time.localtime( ).tm_isdst: dstOffset = " +0100"
 
     xmltv = XMLTV()
+    supportedChannels = _getSupportedChannels()
 
     for item in list:
 
-        for channelInfo in item.getChannelList():
-            channel = Channel(channelInfo.getId(), channelInfo.getDisplayName(), "pt", channelInfo.getIconSrc())
-            channel.setUrl(baseUrl)
-            xmltv.addChannel(channel)
+        if (supportedChannels != None and item.getProviderCode() in supportedChannels):
 
+            for channelInfo in item.getChannelList():
+                channel = Channel(channelInfo.getId(), channelInfo.getDisplayName(), "pt", channelInfo.getIconSrc())
+                channel.setUrl(baseUrl)
+                xmltv.addChannel(channel)
+
+        else:
+            print("MEO: {0} - Channel id not available.".format(item.getProviderCode()))
+            continue
 
         link = url.format(urllib.parse.quote(item.getProviderCode()), sDate, eDate)
         #print(link)
@@ -66,3 +72,20 @@ def getEPG(list, nr_days):
 
     return xmltv
 
+
+def _getSupportedChannels():
+
+    url = "http://services.sapo.pt/EPG/GetChannelList";
+
+    channels = set()
+
+    content = urllib.request.urlopen(url)
+    myfile = content.read()
+    DOMTree = xml.dom.minidom.parseString(myfile)
+    collection = DOMTree.documentElement
+    siglas = collection.getElementsByTagName("Sigla")
+
+    for sigla in siglas:
+        channels.add(sigla.firstChild.data)
+
+    return channels
