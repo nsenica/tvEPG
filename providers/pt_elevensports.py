@@ -51,9 +51,10 @@ def getEPG(list, nrDays):
             except ValueError:
                 continue
             for program in myfile[0]["items"]:
+                #print(program)
                 sTime = datetime.datetime.strptime(program["su"], "%Y-%m-%dT%H:%M:%S.000")
+                eTime = sTime + datetime.timedelta( minutes=program["d"])
                 sTime = sTime.strftime("%Y%m%d%H%M%S") + dstOffset
-                eTime = datetime.datetime.strptime(program["sl"], "%Y-%m-%dT%H:%M:%S.000")
                 eTime = eTime.strftime("%Y%m%d%H%M%S") + dstOffset
                 title = program["e"]
                 desc = program["t"] + " - " + program["e"]
