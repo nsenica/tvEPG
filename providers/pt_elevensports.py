@@ -58,6 +58,7 @@ def getEPG(list, nrDays):
                 eTime = eTime.strftime("%Y%m%d%H%M%S") + dstOffset
                 title = program["e"]
                 desc = program["t"] + " - " + program["e"]
+                iconsrc = None
                 if "img" in program:
                     iconsrc = iconUrlPrefix + program["img"]
 
