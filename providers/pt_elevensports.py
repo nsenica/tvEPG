@@ -7,6 +7,7 @@ import json
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
 from classes.xmltv.XMLTV import XMLTV
+import logging
 
 baseUrl = "http://www.elevensports.pt"
 url="https://neulionmdnyc-a.akamaihd.net/u/mt1/elevensportspt/epg/{0}/{1}/{2}/{3}.js?"
@@ -22,7 +23,6 @@ def getEPG(list, nrDays):
     if time.localtime( ).tm_isdst: dstOffset = " +0100"
 
     xmltv = XMLTV()
-    provCodes = []
 
     for item in list:
 
@@ -30,19 +30,21 @@ def getEPG(list, nrDays):
             c = Channel(channelInfo.getId(), channelInfo.getDisplayName(), "pt", channelInfo.getIconSrc())
             c.setUrl(baseUrl)
             xmltv.addChannel(c)
+            logging.debug("[ELEVENSPORTS] Adding %s (%s)", c.getId(), c.getDisplayName())
 
         while sDate < eDate:
             link = url.format(item.getProviderCode(),sDate.strftime("%Y"),sDate.strftime("%m"),sDate.strftime("%d"))
-            #print(link)
             sDate += delta
 
             try:
                 content = urllib.request.urlopen(link)
             except urllib.error.URLError as e:
-                #print(e.reason)
+                logging.error("Error while fetching data %s", e.reason)
                 continue
 
-            if content.getcode() != 200: continue
+            if content.getcode() != 200:
+                logging.warning("Couldn't retrieve information for %s, HTTP Error code: %s " % item.getProviderCode(), content.getCode() )
+                continue
             myfile = content.read().decode('utf8')
             myfile = myfile.replace('handleEPGCallback(','')
             myfile = myfile.rsplit(')', 1)[0]
@@ -51,7 +53,6 @@ def getEPG(list, nrDays):
             except ValueError:
                 continue
             for program in myfile[0]["items"]:
-                #print(program)
                 sTime = datetime.datetime.strptime(program["su"], "%Y-%m-%dT%H:%M:%S.000")
                 eTime = sTime + datetime.timedelta( minutes=program["d"])
                 sTime = sTime.strftime("%Y%m%d%H%M%S") + dstOffset

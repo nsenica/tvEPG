@@ -41,7 +41,7 @@ The channel list input file is a simple XML, as follows:
 Once the channel list xml is created just run the script:
 
 ```
-usage: tvEPG.py [-h] [-i INPUT] [-o OUTPUT] [-d DAYS]
+usage: tvEPG.py [-h] [-i INPUT] [-o OUTPUT] [-d DAYS] [-p PROVIDER] [-c CHANNEL] [--debug]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -50,6 +50,11 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         Specify the output XMLTV filename
   -d DAYS, --days DAYS  Specify the number of days to process
+  -p PROVIDER, --provider PROVIDER
+                        Filter on provider
+  -c CHANNEL, --channel CHANNEL
+                        Filter on channel (name)
+  --debug               Turn debug on
 ```
 
 A xml file will be generated with the channels and programmes contents if no errors occur.
@@ -68,7 +73,7 @@ Dates produces by the providers need to be in the following format:
 ## Known issues
 This is very poorly tested and it works for the providers I include, there's no guarantees this will work without changes for new EPG providers, nor that this produces a EPG file compatible with your system. Please provide me with examples and I'll try to improve it, or simply submit a PR.
 
-I used this project to learn python, so please bear with me if things are poorly done and/or designed. Many things might be improved which I'll do as soon as I'm aware of them.
+I used this project to learn Python, so please bear with me if things are poorly done and/or designed. Many things might be improved which I'll do as soon as I'm aware of them.
 
 Feedback, improvements or suggestions are always welcome.
 
@@ -77,12 +82,13 @@ In no specific order:
 
 - Find a way to dynamically register providers without the need to change `tvEPG.py`
 - Move all the date format and handling outside of the providers, or pass the format to the providers.
-- Be more resilient in case any provider breaks, we don't stop the EPG generation.
+- Be more resilient, in case any provider breaks, we don't stop the EPG generation.
 - Support for more than one provider for each channel, so that if one provider fails we can fall back to another.
 - More providers, including a generic provider to fetch channels and programmes from another xmltv file.
 - Register hooks to perform certain operations at the end, i.e. Dropbox uploader, FTP file, zip/rar/compress output file, etc..
 - Provide utilities for provider classes to make https requests
-- Add logging
+- Add (more) logging
+- Make use of the xmltv `episode-num` tag
 - ...
 
 ## Credits

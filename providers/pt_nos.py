@@ -229,6 +229,7 @@ import urllib
 import datetime
 import time
 import json
+import logging
 from bs4 import BeautifulSoup
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
@@ -256,12 +257,15 @@ def getEPG(list, nrDays):
             c = Channel(channelInfo.getId(), channelInfo.getDisplayName(), "pt", channelInfo.getIconSrc())
             c.setUrl(baseUrl)
             xmltv.addChannel(c)
+            logging.debug("[NOS] Adding %s (%s)", channelInfo.getId(), channelInfo.getDisplayName())
 
         link = url.format(item.getProviderCode())
-        # print(link)
+        logging.debug(link)
 
         f = urllib.request.urlopen(link)
-        if f.getcode() != 200: continue
+        if f.getcode() != 200:
+            logging.warning("Couldn't retrieve information for %s, HTTP Error code: %s " % item.getProviderCode(), f.getCode() )
+            continue
         myfile = f.read()
 
         soup = BeautifulSoup(myfile, 'html.parser')
@@ -281,13 +285,15 @@ def getEPG(list, nrDays):
             if days_count > nrDays:
                 continue
 
-            ++days_count
+            logging.debug("[NOS] Processing date %s", sDate)
+
+            days_count += 1
 
             for program in day.find_all("span", style="height: 55px"):
                 # print(program)
                 aNode = program.find("a")
                 #title = aNode.get("title"))
-                category = aNode.get("class")
+                #category = aNode.get("class")
                 id = aNode.get("id")
 
                 programNode = aNode.find("span", class_="program")
@@ -301,12 +307,13 @@ def getEPG(list, nrDays):
                 if (eTime < sTime):
                     eDate = sDate+delta
 
-                sTime = datetime.datetime(sDate.year, sDate.month, sDate.day, int(sTime.split(":")[0]), int(sTime.split(":")[1]), 0);
-                eTime = datetime.datetime(eDate.year, eDate.month, eDate.day, int(eTime.split(":")[0]), int(eTime.split(":")[1]), 0);
+                sTime = datetime.datetime(sDate.year, sDate.month, sDate.day, int(sTime.split(":")[0]), int(sTime.split(":")[1]), 0)
+                eTime = datetime.datetime(eDate.year, eDate.month, eDate.day, int(eTime.split(":")[0]), int(eTime.split(":")[1]), 0)
                 sTime = sTime.strftime("%Y%m%d%H%M%S") + dstOffset
                 eTime = eTime.strftime("%Y%m%d%H%M%S") + dstOffset
                 icon = None
 
+                logging.debug("[NOS] %s : Getting program details for %s (%s)", sDate, cAcronym, id)
                 (_title, _desc, _icon, _sTime, _eTime) = _getProgrammeDetails(id, cAcronym, duration)
 
                 if _title != None:
@@ -323,6 +330,7 @@ def getEPG(list, nrDays):
                 for channelInfo in item.getChannelList():
                     p = Programme(channelInfo.getId(), sTime, eTime, title, desc, "pt", icon)
                     xmltv.addProgramme(p)
+                    logging.debug("[NOS] %s : Programme for %s (%s - %s) added", sDate, channelInfo.getId(), sTime, eTime)
 
 
     return xmltv

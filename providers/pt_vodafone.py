@@ -207,7 +207,7 @@
 # 50,VH1 Europe
 # 245,VOX
 
-import urllib
+import urllib.request
 import datetime
 import time
 import json
@@ -215,6 +215,7 @@ from collections import defaultdict
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
 from classes.xmltv.XMLTV import XMLTV
+import logging
 
 
 baseUrl = "http://www.vodafone.pt"
@@ -245,23 +246,24 @@ def getEPG(items, nr_days):
                 channel.setUrl(baseUrl)
                 xmltv.addChannel(channel)
                 provCodes[item.getProviderCode()].append(channelInfo.getId())
+                logging.debug("[VODAFONE] Adding %s (%s)", channelInfo.getId(), channelInfo.getDisplayName())
         else:
-            print("Vodafone: {0} - Channel id not available.".format(item.getProviderCode()))
+            logging.warning("Vodafone: {0} - Channel id not available.".format(item.getProviderCode()))
 
 
     while sDate < eDate:
         link = url.format(",".join(provCodes.keys()),sDate.strftime("%Y"),sDate.strftime("%m"),sDate.strftime("%d"))
-        #print(link)
         sDate += delta
 
         content = urllib.request.urlopen(link)
-        if content.getcode() != 200: continue
+        if content.getcode() != 200:
+            logging.warning("Couldn't retrieve information for channels. HTTP Error code: %s " % content.getCode() )
+            continue
         myfile = content.read().decode('utf8')
         try:
             myfile = json.loads(myfile)
         except ValueError:
             continue
-        #print(myfile)
         for channel in myfile["result"]["channels"]:
             for program in channel["programList"]:
                 sTime = datetime.datetime.strptime(program["date"]+"T"+program["startTime"], "%d-%m-%YT%H:%M")
@@ -279,7 +281,7 @@ def getEPG(items, nr_days):
 
 def _getSupportedChannels():
 
-    url = "https://tvnetvoz.vodafone.pt/sempre-consigo/datajson/epg/channels.jsp";
+    url = "https://tvnetvoz.vodafone.pt/sempre-consigo/datajson/epg/channels.jsp"
 
     channels = set()
 

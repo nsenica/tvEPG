@@ -16,6 +16,7 @@ import providers.pt_nos
 import sys
 import time
 import argparse
+import logging
 from classes.xmltv.Channel import Channel
 from classes.xmltv.XMLTV import XMLTV
 
@@ -23,6 +24,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="Specify the input channel list file", default="channelList.xml")
 parser.add_argument("-o", "--output", help="Specify the output XMLTV filename", default="guide.xml")
 parser.add_argument("-d", "--days", help="Specify the number of days to process", type=int, default=8)
+parser.add_argument("-p", "--provider", help="Filter on provider", default=None)
+parser.add_argument("-c", "--channel", help="Filter on channel (name)", default=None)
+parser.add_argument("--debug", help="Turn debug on", action="store_true")
 args = parser.parse_args()
 
 ##########################################
@@ -36,7 +40,12 @@ args = parser.parse_args()
 channelFilename=args.input
 ##########################################
 
-cList = XMLChannelList.load(channelFilename)
+if (args.debug):
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s', level="DEBUG")
+else:
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s', level="INFO")
+
+cList = XMLChannelList.load(channelFilename, args.provider, args.channel)
 cDict = XMLChannelList.sortByProvider(cList)
 
 nrDays = args.days
@@ -49,36 +58,34 @@ for provCode,xmlChannels in cDict.items():
 
     start = time.time()
     if provCode == "MEO":
-        print("Getting info for MEO: " + str(len(xmlChannels)))
+        logging.info("Getting info for MEO: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_meo.getEPG(xmlChannels, nrDays)
     elif provCode == "VODAFONE":
-        print("Getting info for VODAFONE: " + str(len(xmlChannels)))
+        logging.info("Getting info for VODAFONE: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_vodafone.getEPG(xmlChannels, nrDays)
 
     elif provCode == "ES":
-        print("Getting info for ES: " + str(len(xmlChannels)))
+        logging.info("Getting info for ES: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_elevensports.getEPG(xmlChannels, nrDays)
 
     elif provCode == "NOS":
-        print("Getting info for NOS: " + str(len(xmlChannels)))
+        logging.info("Getting info for NOS: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_nos.getEPG(xmlChannels, nrDays)
     else:
-        print("No provider found for: ")
+        logging.info("No provider found for: ")
         for item in xmlChannels:
             for channelInfo in item.getChannelList():
                 c = Channel(channelInfo.getId(), channelInfo.getDisplayName(), channelInfo.getLang(), channelInfo.getIconSrc())
                 xmltv.addChannel(c)
-                print(channelInfo.getDisplayName())
-        print("Got " + str(len(xmltv.getChannels())))
+                logging.info(channelInfo.getDisplayName())
+        logging.info("Got " + str(len(xmltv.getChannels())))
 
     end = time.time()
 
     if (provXMLTV is not None):
-        print("Got " + str(len(provXMLTV.getChannels())) + " channels and " + str(len(provXMLTV.getProgrammes())) + " programmes in " + str(int(end-start)) + " seconds.")
+        logging.info("Got " + str(len(provXMLTV.getChannels())) + " channels and " + str(len(provXMLTV.getProgrammes())) + " programmes in " + str(int(end-start)) + " seconds.")
         xmltv.addFromXMLTV(provXMLTV)
 
-    print("Total: " + str(len(xmltv.getChannels())) + " channels and " + str(len(xmltv.getProgrammes())) + " programmes.")
+    logging.info("Total: " + str(len(xmltv.getChannels())) + " channels and " + str(len(xmltv.getProgrammes())) + " programmes.")
 
 xmltv.writeXML(args.output)
-
-print("Done")

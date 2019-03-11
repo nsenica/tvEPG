@@ -11,7 +11,7 @@ class ChannelInfo:
         self._lang = "pt"
 
     def getId(self):
-        return self._id;
+        return self._id
 
     def getDisplayName(self):
         return self._displayName

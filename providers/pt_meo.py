@@ -4,6 +4,7 @@ import urllib.request
 import urllib.parse
 import xml.dom.minidom
 import time
+import logging
 from datetime import datetime,timedelta
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
@@ -36,13 +37,14 @@ def getEPG(list, nr_days):
                 channel = Channel(channelInfo.getId(), channelInfo.getDisplayName(), "pt", channelInfo.getIconSrc())
                 channel.setUrl(baseUrl)
                 xmltv.addChannel(channel)
+                logging.debug("[MEO] Adding %s (%s)", channelInfo.getId(), channelInfo.getDisplayName())
 
         else:
-            print("MEO: {0} - Channel id not available.".format(item.getProviderCode()))
+            logging.warning("MEO: %s - Channel id not available." % format(item.getProviderCode()))
             continue
 
         link = url.format(urllib.parse.quote(item.getProviderCode()), sDate, eDate)
-        #print(link)
+        logging.debug(link)
         #read web-service
         content = urllib.request.urlopen(link)
         myfile = content.read()
@@ -53,10 +55,10 @@ def getEPG(list, nr_days):
         programs = collection.getElementsByTagName("Program")
 
         for program in programs:
-            title = program.getElementsByTagName("Title")[0].firstChild.data;
-            desc = program.getElementsByTagName("Description")[0].firstChild.data;
-            sTime = program.getElementsByTagName("StartTime")[0].firstChild.data;
-            eTime = program.getElementsByTagName("EndTime")[0].firstChild.data;
+            title = program.getElementsByTagName("Title")[0].firstChild.data
+            desc = program.getElementsByTagName("Description")[0].firstChild.data
+            sTime = program.getElementsByTagName("StartTime")[0].firstChild.data
+            eTime = program.getElementsByTagName("EndTime")[0].firstChild.data
             startTime = program.getElementsByTagName('StartTime')[0]
             endTime = program.getElementsByTagName('EndTime')[0]
             transt = dict.fromkeys(map(ord, '-: '), None)
@@ -75,7 +77,7 @@ def getEPG(list, nr_days):
 
 def _getSupportedChannels():
 
-    url = "http://services.sapo.pt/EPG/GetChannelList";
+    url = "http://services.sapo.pt/EPG/GetChannelList"
 
     channels = set()
 

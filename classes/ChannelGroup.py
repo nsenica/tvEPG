@@ -11,7 +11,7 @@ class ChannelGroup:
         self._channelList = []
 
     def getProvider(self):
-        return self._provider;
+        return self._provider
 
     def getProviderCode(self):
         return self._providerCode
@@ -28,3 +28,6 @@ class ChannelGroup:
     def addChannel(self, id, displayName, iconSrc):
         ci = ChannelInfo(id, displayName, iconSrc)
         self._channelList.append(ci)
+
+    def nrChannels(self):
+        return len(self._channelList)

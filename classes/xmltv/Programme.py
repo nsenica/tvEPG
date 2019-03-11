@@ -14,7 +14,7 @@ class Programme:
         self._iconSrc = iconSrc
 
     def getChannel(self):
-        return self._channel;
+        return self._channel
 
     def getStartTime(self):
         return self._sTime
