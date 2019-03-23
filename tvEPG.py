@@ -10,6 +10,7 @@
 
 import utils.XMLChannelList as XMLChannelList
 import providers.pt_meo
+import providers.pt_meo_go
 import providers.pt_vodafone
 import providers.pt_elevensports
 import providers.pt_nos
@@ -60,6 +61,11 @@ for provCode,xmlChannels in cDict.items():
     if provCode == "MEO":
         logging.info("Getting info for MEO: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_meo.getEPG(xmlChannels, nrDays)
+        
+    elif provCode == "MEOGO":
+        logging.info("Getting info for MEOGO: " + str(len(xmlChannels)))
+        provXMLTV = providers.pt_meo_go.getEPG(xmlChannels, nrDays)
+
     elif provCode == "VODAFONE":
         logging.info("Getting info for VODAFONE: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_vodafone.getEPG(xmlChannels, nrDays)
@@ -77,13 +83,13 @@ for provCode,xmlChannels in cDict.items():
             for channelInfo in item.getChannelList():
                 c = Channel(channelInfo.getId(), channelInfo.getDisplayName(), channelInfo.getLang(), channelInfo.getIconSrc())
                 xmltv.addChannel(c)
-                logging.info(channelInfo.getDisplayName())
+                logging.info("\t" + channelInfo.getDisplayName())
         logging.info("Got " + str(len(xmltv.getChannels())))
 
     end = time.time()
 
     if (provXMLTV is not None):
-        logging.info("Got " + str(len(provXMLTV.getChannels())) + " channels and " + str(len(provXMLTV.getProgrammes())) + " programmes in " + str(int(end-start)) + " seconds.")
+        logging.info("["+provCode+"] Got " + str(len(provXMLTV.getChannels())) + " channels and " + str(len(provXMLTV.getProgrammes())) + " programmes in " + str(int(end-start)) + " seconds.")
         xmltv.addFromXMLTV(provXMLTV)
 
     logging.info("Total: " + str(len(xmltv.getChannels())) + " channels and " + str(len(xmltv.getProgrammes())) + " programmes.")
