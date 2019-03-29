@@ -243,8 +243,6 @@ iconUrlPrefix = "http://images.nos.pt/"
 def getEPG(list, nrDays):
 
     today = sDate = datetime.date.today()
-    delta = datetime.timedelta(days=1)
-    deltaM = datetime.timedelta(days=30)
 
     dstOffset = " +0000"
     if time.localtime( ).tm_isdst: dstOffset = " +0100"
@@ -277,10 +275,7 @@ def getEPG(list, nrDays):
 
         days_count = 0
         for day in all_days:
-            sDay = day.get("id").replace('day','')
-            sDate = today
-            if (today.day > int(sDay)):
-                sDate = today+deltaM
+            sDate = today + datetime.timedelta(days = days_count )
 
             if days_count > nrDays:
                 continue
@@ -289,10 +284,11 @@ def getEPG(list, nrDays):
 
             days_count += 1
 
+            items_count = 0;
             for program in day.find_all("span", style="height: 55px"):
                 # print(program)
                 aNode = program.find("a")
-                #title = aNode.get("title"))
+                #title = aNode.get("title")
                 #category = aNode.get("class")
                 id = aNode.get("id")
 
@@ -304,16 +300,33 @@ def getEPG(list, nrDays):
                 sTime = duration[0].strip()
                 eTime = duration[1].strip()
                 eDate = sDate
-                if (eTime < sTime):
-                    eDate = sDate+delta
+                isDate = sDate
 
-                sTime = datetime.datetime(sDate.year, sDate.month, sDate.day, int(sTime.split(":")[0]), int(sTime.split(":")[1]), 0)
+                if (eTime < sTime):
+                    # First entry - Program from yesterday that continues today
+                    if (items_count == 0):
+                        isDate = sDate - datetime.timedelta(days = 1 )
+                    # Last entry - Program from today that continues tomorrow, skip it as we'll catch it "tomorrow"
+                    else:
+                        continue
+                items_count += 1
+
+                sTime = datetime.datetime(isDate.year, isDate.month, isDate.day, int(sTime.split(":")[0]), int(sTime.split(":")[1]), 0)
                 eTime = datetime.datetime(eDate.year, eDate.month, eDate.day, int(eTime.split(":")[0]), int(eTime.split(":")[1]), 0)
+
+                if sTime >= datetime.datetime(2019,3,31,1,0,0) and sTime <= datetime.datetime(2019,3,31,4,0,0):
+                    logging.info("[NOS] Skipping due to erroneous datetime handling during DST transition...")
+                    continue
+
+                if eTime >= datetime.datetime(2019,3,31,1,0,0) and eTime <= datetime.datetime(2019,3,31,4,0,0):
+                    logging.info("[NOS] Skipping due to erroneous datetime handling during DST transition...")
+                    continue
+
                 sTime = sTime.strftime("%Y%m%d%H%M%S") + dstOffset
                 eTime = eTime.strftime("%Y%m%d%H%M%S") + dstOffset
                 icon = None
 
-                logging.debug("[NOS] %s : Getting program details for %s (%s)", sDate, cAcronym, id)
+                logging.debug("[NOS] %s : Getting program details for %s (%s)", isDate, cAcronym, id)
                 (_title, _desc, _icon, _sTime, _eTime) = _getProgrammeDetails(id, cAcronym, duration)
 
                 if _title != None:

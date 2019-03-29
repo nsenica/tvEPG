@@ -45,7 +45,7 @@ def getEPG(list, nr_days):
             d = _getProgramDetailsById(pid)
             if d is None:
                 continue
-                
+
             for channelInfo in item.getChannelList():
                 p = Programme(channelInfo.getId(), d["sTime"], d["eTime"], d["title"], d["desc"], "pt", d["icon"])
                 xmltv.addProgramme(p)
@@ -99,6 +99,15 @@ def _getProgramDetailsById(progId):
 
     sTime = datetime(int(date[2]), int(date[1]), int(date[0]), int(sTime.split(":")[0]), int(sTime.split(":")[1]), 0)
     eTime = datetime(int(date[2]), int(date[1]), int(date[0]), int(eTime.split(":")[0]), int(eTime.split(":")[1]), 0)
+
+
+    if sTime >= datetime(2019,3,31,1,0,0) and sTime <= datetime(2019,3,31,4,0,0):
+        logging.info("[MEOGO] Skipping due to erroneous datetime handling during DST transition...")
+        return None
+
+    if eTime >= datetime(2019,3,31,1,0,0) and eTime <= datetime(2019,3,31,4,0,0):
+        logging.info("[MEOGO] Skipping due to erroneous datetime handling during DST transition...")
+        return None
     
     if (eTime < sTime):
         eTime += timedelta(days=1)

@@ -37,13 +37,14 @@ class XMLTV:
         xmldoc = self._generateXML()
 
         file_handle = open(filename,"w")
-        xmldoc.writexml(file_handle,indent="  ",addindent="  ", newl='\n')
+        xmldoc.writexml(file_handle,indent="  ",addindent="  ", newl='\n', encoding="utf-8")
         file_handle.close()
 
     def _generateXML(self):
         _impl = getDOMImplementation()
         _newdoc = _impl.createDocument(None, "tv", None)
         _root = _newdoc.documentElement
+        _root.setAttribute("generator-info-name","tvEPG")
 
         for ch in self._channels:
             _root.appendChild(ch.toxmltv())

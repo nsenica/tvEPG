@@ -61,9 +61,23 @@ def getEPG(list, nr_days):
             eTime = program.getElementsByTagName("EndTime")[0].firstChild.data
             startTime = program.getElementsByTagName('StartTime')[0]
             endTime = program.getElementsByTagName('EndTime')[0]
+
+            dstSTime = datetime.strptime(startTime.firstChild.data, "%Y-%m-%d %H:%M:%S")
+            dstETime = datetime.strptime(endTime.firstChild.data, "%Y-%m-%d %H:%M:%S")
+            
+            if dstSTime >= datetime(2019,3,31,1,0,0) and dstSTime <= datetime(2019,3,31,4,0,0):
+                logging.info("[MEO] Skipping due to erroneous datetime handling during DST transition...")
+                continue
+
+            if dstETime >= datetime(2019,3,31,1,0,0) and dstETime <= datetime(2019,3,31,4,0,0):
+                logging.info("[MEO] Skipping due to erroneous datetime handling during DST transition...")
+                continue
+            
             transt = dict.fromkeys(map(ord, '-: '), None)
             sTime=str(startTime.firstChild.data).translate(transt) + dstOffset
             eTime=str(endTime.firstChild.data).translate(transt) + dstOffset
+
+            
 
             for channelInfo in item.getChannelList():
                 p = Programme(channelInfo.getId(), sTime, eTime, title, desc, "pt", None)

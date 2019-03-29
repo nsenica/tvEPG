@@ -216,13 +216,15 @@ from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
 from classes.xmltv.XMLTV import XMLTV
 import logging
-
+import pytz
 
 baseUrl = "http://www.vodafone.pt"
 url="https://tvnetvoz.vodafone.pt/sempre-consigo/epg.do?action=getPrograms&chanids={0}&day={1}-{2}-{3}"
 iconUrlPrefix = "http://web.ottimg.vodafone.pt/iptvimageserver/Get/{0}_{1}/16_9/325/244"
 
 def getEPG(items, nr_days):
+
+    tz = pytz.timezone("Europe/Lisbon")
 
     sDate = datetime.date.today()
     delta = datetime.timedelta(days=1)
@@ -268,8 +270,23 @@ def getEPG(items, nr_days):
             for program in channel["programList"]:
                 sTime = datetime.datetime.strptime(program["date"]+"T"+program["startTime"], "%d-%m-%YT%H:%M")
                 eTime = sTime + datetime.timedelta( minutes=program["duration"])
-                sTime = sTime.strftime("%Y%m%d%H%M%S") + dstOffset
-                eTime = eTime.strftime("%Y%m%d%H%M%S") + dstOffset
+
+                if sTime >= datetime.datetime(2019,3,31,1,0,0) and sTime <= datetime.datetime(2019,3,31,4,0,0):
+                    logging.info("[VODAFONE] Skipping due to erroneous datetime handling during DST transition...")
+                    continue
+
+                if eTime >= datetime.datetime(2019,3,31,1,0,0) and eTime <= datetime.datetime(2019,3,31,4,0,0):
+                    logging.info("[VODAFONE] Skipping due to erroneous datetime handling during DST transition...")
+                    continue
+
+                sTime = tz.localize(sTime)
+                sTime = sTime.astimezone(tz)
+                eTime = tz.localize(eTime)
+                eTime = eTime.astimezone(tz)
+
+
+                sTime = sTime.strftime("%Y%m%d%H%M%S %z")
+                eTime = eTime.strftime("%Y%m%d%H%M%S %z")
                 title = program["programTitle"]
                 desc = program["programDetails"]
                 iconSrc = iconUrlPrefix.format(urllib.parse.quote(channel["callLetter"]),program["pid"])
