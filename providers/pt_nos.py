@@ -335,10 +335,10 @@ def getEPG(list, nrDays):
                     desc = _desc
                 if _icon != None:
                     icon = _icon
-                if _sTime != None:
-                    sTime = _sTime
-                if _eTime != None:
-                    eTime = _eTime
+#                if _sTime != None:
+#                    sTime = _sTime
+#                if _eTime != None:
+#                    eTime = _eTime
 
                 for channelInfo in item.getChannelList():
                     p = Programme(channelInfo.getId(), sTime, eTime, title, desc, "pt", icon)
@@ -359,7 +359,7 @@ def _getProgrammeDetails(id, cAcronym, d):
         try:
             data = json.loads(data)
         except ValueError:
-            return
+            return (None, None, None, None, None)
 
         values = data["d"]
         values = values.split("_#|$_")
@@ -371,6 +371,10 @@ def _getProgrammeDetails(id, cAcronym, d):
         transt[ord('+')] = ' +'
         sTime = str(values[6]).translate(transt)
         eTime = str(values[7]).translate(transt)
+
+        if (title == "Sem título..." or eTime == "false"):
+            logging.debug(data)
+            return (None, None, None, None, None)
 
     return (title, desc, icon, sTime, eTime)
 
