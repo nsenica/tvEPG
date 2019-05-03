@@ -12,6 +12,8 @@ class Programme:
         self._desc = desc
         self._lang = lang
         self._iconSrc = iconSrc
+        self._episodeNumber = None
+        self._seasonNumber = None
 
     def getChannel(self):
         return self._channel
@@ -31,6 +33,26 @@ class Programme:
     def getIconSrc(self):
         return self._iconSrc
 
+    def setEpisodeNumber(self, episodeNumber):
+        self._episodeNumber = episodeNumber
+    
+    def setSeasonNumber(self, seasonNumber):
+        self._seasonNumber = seasonNumber
+
+    def getEpisodeNumXmltvNS(self):
+        season = ""
+        if (self._seasonNumber != None and int(self._seasonNumber) > 0):
+            season = int(self._seasonNumber) - 1
+        episode = ""
+        if (self._episodeNumber != None and int(self._episodeNumber) > 0):
+            episode = int(self._episodeNumber) - 1
+
+        if (season == "" and episode == ""):
+            return None
+
+        return "%s.%s." % (str(season), str(episode))
+
+
     def toxmltv(self):
         doc = minidom.Document()
         programme = doc.createElement("programme")
@@ -49,6 +71,14 @@ class Programme:
         desc.setAttribute("lang",self._lang)
         desc.appendChild(doc.createTextNode(format(self._desc)))
         programme.appendChild(desc)
+
+        #episode-num
+        xmltv_ns = self.getEpisodeNumXmltvNS()
+        if (xmltv_ns != None):
+            en = doc.createElement("episode-num")
+            en.setAttribute("system","xmltv_ns")
+            en.appendChild(doc.createTextNode(xmltv_ns))
+            programme.appendChild(en)
 
         if (self._iconSrc != None):
             #icon

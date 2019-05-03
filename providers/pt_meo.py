@@ -5,6 +5,7 @@ import urllib.parse
 import xml.dom.minidom
 import time
 import logging
+import re
 from datetime import datetime,timedelta
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
@@ -81,6 +82,7 @@ def getEPG(list, nr_days):
 
             for channelInfo in item.getChannelList():
                 p = Programme(channelInfo.getId(), sTime, eTime, title, desc, "pt", None)
+                _findSeasonEpisode(title,p)
                 xmltv.addProgramme(p)
 
 
@@ -88,6 +90,21 @@ def getEPG(list, nr_days):
 
     return xmltv
 
+def _findSeasonEpisode(title,p):
+    m = re.match(r'.*(\s+|:)T(\d+)(?:\s+-?\s*Ep.\s*)?(\d+)?$', title)
+    if m:
+        season = m.group(2)
+        if season:
+            p.setSeasonNumber(season)
+        episode = m.group(3)
+        if episode:
+            p.setEpisodeNumber(episode)
+    else:
+        m = re.match(r'.*\s+Ep.\s*(\d+)$', title)
+        if m:
+            episode = m.group(1)
+            if episode:
+                p.setEpisodeNumber(episode)
 
 def _getSupportedChannels():
 

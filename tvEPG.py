@@ -61,7 +61,7 @@ for provCode,xmlChannels in cDict.items():
     if provCode == "MEO":
         logging.info("Getting info for MEO: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_meo.getEPG(xmlChannels, nrDays)
-        
+
     elif provCode == "MEOGO":
         logging.info("Getting info for MEOGO: " + str(len(xmlChannels)))
         provXMLTV = providers.pt_meo_go.getEPG(xmlChannels, nrDays)

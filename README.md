@@ -88,7 +88,7 @@ In no specific order:
 - Register hooks to perform certain operations at the end, i.e. Dropbox uploader, FTP file, zip/rar/compress output file, etc..
 - Provide utilities for provider classes to make https requests
 - Add (more) logging
-- Make use of the xmltv `episode-num` tag
+- ~Make use of the xmltv `episode-num` tag~ DONE
 - ...
 
 ## Credits

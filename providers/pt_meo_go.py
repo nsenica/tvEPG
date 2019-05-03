@@ -5,14 +5,15 @@ import urllib.parse
 import time
 import logging
 import json
+import re
 from datetime import datetime,timedelta
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
 from classes.xmltv.XMLTV import XMLTV
 
-# Implements basic client for https://meogo.meo.pt/tv/guia-tv
-# List of channels: https://meogo.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getGridAnon
-baseUrl = "https://meogo.meo.pt/tv/guia-tv"
+# Implements basic client for https://www.meo.pt/tv/canais-servicos-tv/guia-tv
+# List of channels (POST): https://www.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getGridAnon
+baseUrl = "https://www.meo.pt/tv/canais-servicos-tv/guia-tv"
 
 def getEPG(list, nr_days):
 
@@ -48,10 +49,26 @@ def getEPG(list, nr_days):
 
             for channelInfo in item.getChannelList():
                 p = Programme(channelInfo.getId(), d["sTime"], d["eTime"], d["title"], d["desc"], "pt", d["icon"])
+                _findSeasonEpisode(d["title"],p)
                 xmltv.addProgramme(p)
 
     return xmltv
 
+def _findSeasonEpisode(title,p):
+    m = re.match(r'.*(\s+|:)T(\d+)(?:\s+-?\s*Ep.\s*)?(\d+)?$', title)
+    if m:
+        season = m.group(2)
+        if season:
+            p.setSeasonNumber(season)
+        episode = m.group(3)
+        if episode:
+            p.setEpisodeNumber(episode)
+    else:
+        m = re.match(r'.*\s+Ep.\s*(\d+)$', title)
+        if m:
+            episode = m.group(1)
+            if episode:
+                p.setEpisodeNumber(episode)
 
 def _getSupportedChannels():
 

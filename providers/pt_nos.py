@@ -230,14 +230,15 @@ import datetime
 import time
 import json
 import logging
+import re
 from bs4 import BeautifulSoup
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
 from classes.xmltv.XMLTV import XMLTV
 
 baseUrl = "http://www.nos.pt"
-url="http://www.nos.pt/particulares/televisao/guia-tv/Pages/channel.aspx?channel={0}"
-programmeDetailsUrl = "http://www.nos.pt/_layouts/15/Armstrong/ApplicationPages/EPGGetProgramsAndDetails.aspx/GetProgramDetails"
+url="https://www.nos.pt/particulares/televisao/guia-tv/Pages/channel.aspx?channel={0}"
+programmeDetailsUrl = "https://www.nos.pt/_layouts/15/Armstrong/ApplicationPages/EPGGetProgramsAndDetails.aspx/GetProgramDetails"
 iconUrlPrefix = "http://images.nos.pt/"
 
 def getEPG(list, nrDays):
@@ -284,7 +285,7 @@ def getEPG(list, nrDays):
 
             days_count += 1
 
-            items_count = 0;
+            items_count = 0
             for program in day.find_all("span", style="height: 55px"):
                 # print(program)
                 aNode = program.find("a")
@@ -343,10 +344,33 @@ def getEPG(list, nrDays):
                 for channelInfo in item.getChannelList():
                     p = Programme(channelInfo.getId(), sTime, eTime, title, desc, "pt", icon)
                     xmltv.addProgramme(p)
+                    _findSeasonEpisode(title,p)
                     logging.debug("[NOS] %s : Programme for %s (%s - %s) added", sDate, channelInfo.getId(), sTime, eTime)
 
 
     return xmltv
+
+def _findSeasonEpisode(title,p):
+    m = re.match(r'.*(\s+|:)T\.?(\d+)(?:\s+-?\s*Ep.\s*)?(\d+)?$', title)
+    if m:
+        season = m.group(2)
+        if season:
+            p.setSeasonNumber(season)
+        episode = m.group(3)
+        if episode:
+            # Small hack because NOS adds the season to the episode number
+            # so Season 2 Episode 10 becomes: Season 2 Episode 210
+            # This attempts to solve it to the generic case.
+            actual_episode_nr = (int(episode) - int(season)*100)
+            if season and actual_episode_nr < 100 and actual_episode_nr > 0:
+                episode = actual_episode_nr
+            p.setEpisodeNumber(episode)
+    else:
+        m = re.match(r'.*\s+Ep.\s*(\d+)$', title)
+        if m:
+            episode = m.group(1)
+            if episode:
+                p.setEpisodeNumber(episode)
 
 def _getProgrammeDetails(id, cAcronym, d):
     payload = {'programId':id,'channelAcronym':cAcronym,'hour':'0','startHour':d[0].strip(),'endHour':d[1].strip()}
@@ -359,6 +383,7 @@ def _getProgrammeDetails(id, cAcronym, d):
         try:
             data = json.loads(data)
         except ValueError:
+            logging.error("Error parsing json")
             return (None, None, None, None, None)
 
         values = data["d"]

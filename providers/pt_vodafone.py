@@ -217,6 +217,7 @@ from classes.xmltv.Programme import Programme
 from classes.xmltv.XMLTV import XMLTV
 import logging
 import pytz
+import re
 
 baseUrl = "http://www.vodafone.pt"
 url="https://tvnetvoz.vodafone.pt/sempre-consigo/epg.do?action=getPrograms&chanids={0}&day={1}-{2}-{3}"
@@ -229,9 +230,6 @@ def getEPG(items, nr_days):
     sDate = datetime.date.today()
     delta = datetime.timedelta(days=1)
     eDate = sDate + datetime.timedelta(days = nr_days)
-
-    dstOffset = " +0000"
-    if time.localtime( ).tm_isdst: dstOffset = " +0100"
 
     provCodes = defaultdict(list)
     xmltv = XMLTV()
@@ -256,7 +254,7 @@ def getEPG(items, nr_days):
     while sDate < eDate:
         link = url.format(",".join(provCodes.keys()),sDate.strftime("%Y"),sDate.strftime("%m"),sDate.strftime("%d"))
         sDate += delta
-
+        logging.debug("[VODAFONE] Requesting data from URL %s" % link)
         content = urllib.request.urlopen(link)
         if content.getcode() != 200:
             logging.warning("Couldn't retrieve information for channels. HTTP Error code: %s " % content.getCode() )
@@ -292,9 +290,26 @@ def getEPG(items, nr_days):
                 iconSrc = iconUrlPrefix.format(urllib.parse.quote(channel["callLetter"]),program["pid"])
                 for cid in provCodes[channel["id"]]:
                     p = Programme(cid, sTime, eTime, title, desc, "pt", iconSrc)
+                    _findSeasonEpisode(title,p)
                     xmltv.addProgramme(p)
 
     return xmltv
+
+def _findSeasonEpisode(title,p):
+    m = re.match(r'.*(\s+|:)T(\d+)(?:\s+-?\s*Ep.\s*)?(\d+)?$', title)
+    if m:
+        season = m.group(2)
+        if season:
+            p.setSeasonNumber(season)
+        episode = m.group(3)
+        if episode:
+            p.setEpisodeNumber(episode)
+    else:
+        m = re.match(r'.*\s+Ep.\s*(\d+)$', title)
+        if m:
+            episode = m.group(1)
+            if episode:
+                p.setEpisodeNumber(episode)
 
 def _getSupportedChannels():
 
