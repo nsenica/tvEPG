@@ -278,8 +278,16 @@ def getEPG(list, nrDays):
         for day in all_days:
             sDate = today + datetime.timedelta(days = days_count )
 
-            if days_count > nrDays:
+            current_day = re.match(r'^day([\d]+)$', day.get("id"))
+
+            current_day = current_day.group(1)
+
+            if (int(current_day) != int(sDate.day)):
+                logging.info("[NOS] Current day is not the same as the element being analyzed")
                 continue
+
+            if days_count >= nrDays:
+                break
 
             logging.debug("[NOS] Processing date %s", sDate)
 
