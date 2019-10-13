@@ -9,17 +9,14 @@
 #########################################
 
 import utils.XMLChannelList as XMLChannelList
-import providers.pt_meo
-import providers.pt_meo_go
-import providers.pt_vodafone
-import providers.pt_elevensports
-import providers.pt_nos
 import sys
 import time
 import argparse
 import logging
 from classes.xmltv.Channel import Channel
 from classes.xmltv.XMLTV import XMLTV
+from providers import *
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="Specify the input channel list file", default="channelList.xml")
@@ -60,23 +57,23 @@ for provCode,xmlChannels in cDict.items():
     start = time.time()
     if provCode == "MEO":
         logging.info("Getting info for MEO: " + str(len(xmlChannels)))
-        provXMLTV = providers.pt_meo.getEPG(xmlChannels, nrDays)
+        provXMLTV = pt_meo.getEPG(xmlChannels, nrDays)
 
     elif provCode == "MEOGO":
         logging.info("Getting info for MEOGO: " + str(len(xmlChannels)))
-        provXMLTV = providers.pt_meo_go.getEPG(xmlChannels, nrDays)
+        provXMLTV = pt_meo_go.getEPG(xmlChannels, nrDays)
 
     elif provCode == "VODAFONE":
         logging.info("Getting info for VODAFONE: " + str(len(xmlChannels)))
-        provXMLTV = providers.pt_vodafone.getEPG(xmlChannels, nrDays)
+        provXMLTV = pt_vodafone.getEPG(xmlChannels, nrDays)
 
     elif provCode == "ES":
         logging.info("Getting info for ES: " + str(len(xmlChannels)))
-        provXMLTV = providers.pt_elevensports.getEPG(xmlChannels, nrDays)
+        provXMLTV = pt_elevensports.getEPG(xmlChannels, nrDays)
 
     elif provCode == "NOS":
         logging.info("Getting info for NOS: " + str(len(xmlChannels)))
-        provXMLTV = providers.pt_nos.getEPG(xmlChannels, nrDays)
+        provXMLTV = pt_nos.getEPG(xmlChannels, nrDays)
     else:
         logging.info("No provider found for: ")
         for item in xmlChannels:
