@@ -43,18 +43,19 @@ def getEPG(list, nr_days):
         programIds = _getProgramIdsForChannel(item.getProviderCode(), sDate, eDate)
 
         for pid in programIds:
-            
-            d = _getProgramDetailsById(pid)
-            if d is None:
+
+            try:           
+                d = _getProgramDetailsById(pid)
+                if d is None:
+                    continue
+            except TypeError:
                 continue
-
-
 
             for channelInfo in item.getChannelList():
                 p = Programme(channelInfo.getId(), d["sTime"], d["eTime"], d["title"], d["desc"], "pt", d["icon"])
                 _findSeasonEpisode(d["title"],p)
                 xmltv.addProgramme(p)
-                logging.debug("[MEOGO] %s : Programme for %s (%s - %s) added", sDate, channelInfo.getId(), d["sTime"], d["eTime"])
+                logging.debug("[MEOGO] Programme for %s (%s - %s) added", channelInfo.getId(), d["sTime"], d["eTime"])
 
 
     return xmltv
