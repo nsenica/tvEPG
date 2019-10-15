@@ -37,20 +37,25 @@ def getEPG(list, nr_days):
                 logging.debug("[MEOGO] Adding %s (%s)", channelInfo.getId(), channelInfo.getDisplayName())
 
         else:
-            logging.warning("MEOGO: %s - Channel id not available." % format(item.getProviderCode()))
+            logging.warning("[MEOGO] %s - Channel id not available." % format(item.getProviderCode()))
             continue
 
         programIds = _getProgramIdsForChannel(item.getProviderCode(), sDate, eDate)
 
         for pid in programIds:
+            
             d = _getProgramDetailsById(pid)
             if d is None:
                 continue
+
+
 
             for channelInfo in item.getChannelList():
                 p = Programme(channelInfo.getId(), d["sTime"], d["eTime"], d["title"], d["desc"], "pt", d["icon"])
                 _findSeasonEpisode(d["title"],p)
                 xmltv.addProgramme(p)
+                logging.debug("[MEOGO] %s : Programme for %s (%s - %s) added", sDate, channelInfo.getId(), d["sTime"], d["eTime"])
+
 
     return xmltv
 
@@ -132,6 +137,8 @@ def _getProgramDetailsById(progId):
     sTime = sTime.strftime("%Y%m%d%H%M%S") + dstOffset
     eTime = eTime.strftime("%Y%m%d%H%M%S") + dstOffset
 
+    logging.debug("[MEOGO] %s : Got program details for %s", info["date"], progId)
+
     return { "sTime": sTime , "eTime": eTime , "icon": info["progImageXL"], "title" : info["progName"], "desc" : info["description"] }
 
 def _getContents(url,payload):
@@ -147,6 +154,7 @@ def _getContents(url,payload):
     try:
         myfile = json.loads(myfile)
     except ValueError:
+        logging.error("Error parsing json")
         return None
 
     return myfile
