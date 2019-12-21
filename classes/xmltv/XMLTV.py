@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from xml.dom.minidom import getDOMImplementation
+import codecs
 
 class XMLTV:
 
@@ -36,7 +37,8 @@ class XMLTV:
     def writeXML(self, filename):
         xmldoc = self._generateXML()
 
-        file_handle = open(filename,"w")
+        file_handle = open(filename,"wb")
+        file_handle = codecs.lookup("utf-8")[3](file_handle)
         xmldoc.writexml(file_handle,indent="  ",addindent="  ", newl='\n', encoding="utf-8")
         file_handle.close()
 
