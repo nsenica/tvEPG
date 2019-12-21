@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# # Implements basic scapper for https://tvnetvoz.vodafone.pt/sempre-consigo/
-# List of channels: https://tvnetvoz.vodafone.pt/sempre-consigo/datajson/epg/channels.jsp
+# List of channels: https://web.ott-red.vodafone.pt/ott3_webapp/v1/channels
 
-# As of 2018-10-19
+# As of 2018-10-19 (OUTDATED)
 # ChannelId, ChannelName
 # 157,24Kitchen
 # 196,24Kitchen HD
@@ -219,17 +218,13 @@ import logging
 import pytz
 import re
 
-baseUrl = "http://www.vodafone.pt"
-url="https://tvnetvoz.vodafone.pt/sempre-consigo/epg.do?action=getPrograms&chanids={0}&day={1}-{2}-{3}"
-iconUrlPrefix = "http://web.ottimg.vodafone.pt/iptvimageserver/Get/{0}_{1}/16_9/325/244"
+baseUrl = "https://web.ott-red.vodafone.pt/"
+url="https://web.ott-red.vodafone.pt/ott3_webapp/v1.5/programs/grids/{0}/{1}"
+iconUrlPrefix = "http://web.ottimg.vodafone.pt/iptvimageserver/Get/{0}_{1}/4_3/684/513"
 
 def getEPG(items, nr_days):
 
     tz = pytz.timezone("Europe/Lisbon")
-
-    sDate = datetime.date.today()
-    delta = datetime.timedelta(days=1)
-    eDate = sDate + datetime.timedelta(days = nr_days)
 
     provCodes = defaultdict(list)
     xmltv = XMLTV()
@@ -250,24 +245,28 @@ def getEPG(items, nr_days):
         else:
             logging.warning("Vodafone: {0} - Channel id not available.".format(item.getProviderCode()))
 
+        sDate = 0
+        delta = 1
+        eDate = (delta*nr_days-1)
 
-    while sDate < eDate:
-        link = url.format(",".join(provCodes.keys()),sDate.strftime("%Y"),sDate.strftime("%m"),sDate.strftime("%d"))
-        sDate += delta
-        logging.debug("[VODAFONE] Requesting data from URL %s" % link)
-        content = urllib.request.urlopen(link)
-        if content.getcode() != 200:
-            logging.warning("Couldn't retrieve information for channels. HTTP Error code: %s " % content.getCode() )
-            continue
-        myfile = content.read().decode('utf8')
-        try:
-            myfile = json.loads(myfile)
-        except ValueError:
-            continue
-        for channel in myfile["result"]["channels"]:
-            for program in channel["programList"]:
-                sTime = datetime.datetime.strptime(program["date"]+"T"+program["startTime"], "%d-%m-%YT%H:%M")
-                eTime = sTime + datetime.timedelta( minutes=program["duration"])
+        while sDate <= eDate:
+
+            link = url.format(urllib.parse.quote(item.getProviderCode()),sDate)
+            sDate += delta
+            logging.debug("[VODAFONE] Requesting data from URL %s" % link)
+            content = urllib.request.urlopen(link)
+            if content.getcode() != 200:
+                logging.warning("Couldn't retrieve information for channel. HTTP Error code: %s " % content.getCode() )
+                continue
+            myfile = content.read().decode('utf8')
+            try:
+                myfile = json.loads(myfile)
+            except ValueError:
+                continue
+            for program in myfile["data"]:
+
+                sTime = datetime.datetime.strptime(program["startTime"], "%Y-%m-%dT%H:%M:%SZ")
+                eTime = datetime.datetime.strptime(program["endTime"], "%Y-%m-%dT%H:%M:%SZ")
 
                 if sTime >= datetime.datetime(2019,3,31,1,0,0) and sTime <= datetime.datetime(2019,3,31,4,0,0):
                     logging.info("[VODAFONE] Skipping due to erroneous datetime handling during DST transition...")
@@ -285,14 +284,15 @@ def getEPG(items, nr_days):
 
                 sTime = sTime.strftime("%Y%m%d%H%M%S %z")
                 eTime = eTime.strftime("%Y%m%d%H%M%S %z")
-                title = program["programTitle"]
-                desc = program["programDetails"]
-                iconSrc = iconUrlPrefix.format(urllib.parse.quote(channel["callLetter"]),program["pid"])
-                for cid in provCodes[channel["id"]]:
-                    p = Programme(cid, sTime, eTime, title, desc, "pt", iconSrc)
+                title = program["fullTitle"]
+                desc = program["description"]
+                iconSrc = program["image"]
+                for channelInfo in item.getChannelList():
+                    p = Programme(channelInfo.getId(), sTime, eTime, title, desc, "pt", iconSrc)
                     _findSeasonEpisode(title,p)
                     xmltv.addProgramme(p)
 
+       
     return xmltv
 
 def _findSeasonEpisode(title,p):
@@ -313,7 +313,7 @@ def _findSeasonEpisode(title,p):
 
 def _getSupportedChannels():
 
-    url = "https://tvnetvoz.vodafone.pt/sempre-consigo/datajson/epg/channels.jsp"
+    url = "https://web.ott-red.vodafone.pt/ott3_webapp/v1/channels"
 
     channels = set()
 
@@ -325,7 +325,7 @@ def _getSupportedChannels():
     except ValueError:
         return None
 
-    for channel in myfile["result"]["channels"]:
+    for channel in myfile["data"]:
         channels.add(channel["id"])
 
     return channels
