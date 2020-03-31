@@ -276,11 +276,13 @@ def getEPG(items, nr_days):
                     logging.info("[VODAFONE] Skipping due to erroneous datetime handling during DST transition...")
                     continue
 
-                sTime = tz.localize(sTime)
-                sTime = sTime.astimezone(tz)
-                eTime = tz.localize(eTime)
-                eTime = eTime.astimezone(tz)
+                #sTime = tz.localize(sTime)
+                #sTime = sTime.astimezone(tz)
+                #eTime = tz.localize(eTime)
+                #eTime = eTime.astimezone(tz)
 
+                sTime = tz.fromutc(sTime)
+                eTime = tz.fromutc(eTime)
 
                 sTime = sTime.strftime("%Y%m%d%H%M%S %z")
                 eTime = eTime.strftime("%Y%m%d%H%M%S %z")
