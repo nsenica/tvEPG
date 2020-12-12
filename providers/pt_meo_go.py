@@ -6,6 +6,7 @@ import time
 import logging
 import json
 import re
+import ssl
 from datetime import datetime,timedelta
 from classes.xmltv.Channel import Channel
 from classes.xmltv.Programme import Programme
@@ -14,6 +15,8 @@ from classes.xmltv.XMLTV import XMLTV
 # Implements basic client for https://www.meo.pt/tv/canais-servicos-tv/guia-tv
 # List of channels (POST): https://www.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getGridAnon
 baseUrl = "https://www.meo.pt/tv/canais-servicos-tv/guia-tv"
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def getEPG(list, nr_days):
 

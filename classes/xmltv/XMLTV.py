@@ -46,7 +46,7 @@ class XMLTV:
         _impl = getDOMImplementation()
         _newdoc = _impl.createDocument(None, "tv", None)
         _root = _newdoc.documentElement
-        _root.setAttribute("generator-info-name","tvEPG")
+        #_root.setAttribute("generator-info-name","tvEPG")
 
         for ch in self._channels:
             _root.appendChild(ch.toxmltv())
