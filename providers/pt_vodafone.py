@@ -207,6 +207,7 @@
 # 245,VOX
 
 import urllib.request
+from urllib.error import HTTPError
 import datetime
 import time
 import json
@@ -252,12 +253,16 @@ def getEPG(items, nr_days):
         while sDate <= eDate:
 
             link = url.format(urllib.parse.quote(item.getProviderCode()),sDate)
+
             sDate += delta
             logging.debug("[VODAFONE] Requesting data from URL %s" % link)
-            content = urllib.request.urlopen(link)
-            if content.getcode() != 200:
+            
+            content = _get_content(link);
+
+            if content == None or content.getcode() != 200:
                 logging.warning("Couldn't retrieve information for channel. HTTP Error code: %s " % content.getCode() )
                 continue
+            
             myfile = content.read().decode('utf8')
             try:
                 myfile = json.loads(myfile)
@@ -319,8 +324,8 @@ def _getSupportedChannels():
 
     channels = set()
 
-    content = urllib.request.urlopen(url)
-    if content.getcode() != 200: return None
+    content = _get_content(url)
+    if content != None and content.getcode() != 200: return None
     myfile = content.read().decode('utf8')
     try:
         myfile = json.loads(myfile)
@@ -331,3 +336,22 @@ def _getSupportedChannels():
         channels.add(channel["id"])
 
     return channels
+
+def _get_content(url):
+
+    content = None
+    count = 1
+    while count <= 5:
+        try:
+            content = urllib.request.urlopen(url)
+            break
+        except HTTPError:
+            ...
+            
+        count += 1
+        time.sleep(1)
+
+    if count == 6:
+        logging.warning("After 5 attempts we couldn't retrieve the information for this channel." )
+
+    return content
