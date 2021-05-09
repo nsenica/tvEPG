@@ -88,7 +88,7 @@ Feedback, improvements or suggestions are always welcome.
 ## Roadmap
 In no specific order:
 
-- Find a way to dynamically register providers without the need to change `tvEPG.py`
+- ~Find a way to dynamically register providers without the need to change `tvEPG.py`~ DONE
 - Move all the date format and handling outside of the providers, or pass the format to the providers.
 - Be more resilient, in case any provider breaks, we don't stop the EPG generation.
 - Support for more than one provider for each channel, so that if one provider fails we can fall back to another.
