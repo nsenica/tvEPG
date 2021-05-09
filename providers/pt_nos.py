@@ -384,7 +384,13 @@ def _getProgrammeDetails(id, cAcronym, d):
     payload = {'programId':id,'channelAcronym':cAcronym,'hour':'0','startHour':d[0].strip(),'endHour':d[1].strip()}
     params = json.dumps(payload).encode('utf8')
     req = urllib.request.Request(programmeDetailsUrl, data=params, headers={'content-type': 'application/json'})
-    response = urllib.request.urlopen(req)
+    response = None
+    
+    try:
+        response = urllib.request.urlopen(req)
+    except:
+        logging.error("Error retrieving programme details")
+        return (None, None, None, None, None)
 
     if response.getcode() == 200:
         data = response.read().decode('utf8')

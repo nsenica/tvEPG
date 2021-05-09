@@ -8,12 +8,20 @@ This script is written in Python3 and produces a XMLTV compatible xml file, with
 
 ## Installing
 
-Some providers depend on external libraries, so you'll need to install the following:
+First `git clone` the repository and `cd` into it.
 
-`pip3 install beautifulsoup4 pytz`
+_Optionally_, you can create a python virtual environment where the libraries will be installed:
+  
+ - `python3 -m venv .`
+ - Start the venv by running `source bin/activate`
 
-Then `git clone` the repository and check the Usage section below.
 
+Some providers depend on external libraries, so you'll need to run the following to install required libraries:
+
+`pip3 install -f requirements.txt`
+
+
+You're set to go, check the Usage section below on how to run the code
 
 ## Example: channelList.xml
 

@@ -351,7 +351,7 @@ def _get_content(url):
         count += 1
         time.sleep(1)
 
-    if count == 6:
+    if count > 5:
         logging.warning("After 5 attempts we couldn't retrieve the information for this channel." )
 
     return content

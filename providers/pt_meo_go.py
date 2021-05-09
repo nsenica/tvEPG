@@ -81,7 +81,7 @@ def _findSeasonEpisode(title,p):
 
 def _getSupportedChannels():
 
-    myfile = _getContents("https://meogo.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getGridAnon",{"service":"allchannels"})
+    myfile = _getContents("https://www.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getGridAnon",{"service":"allchannels"})
     channels = set()
 
     if myfile is None:
@@ -95,7 +95,7 @@ def _getSupportedChannels():
 def _getProgramIdsForChannel(sigla, sDate, eDate):
 
     payload = {"service":"channelsguide", "dateStart": sDate+"T00:00:00.000Z", "dateEnd": eDate+"T23:59:59.000Z","accountID":"", "channels": [( sigla )] }
-    myfile = _getContents("https://meogo.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getProgramsFromChannels",payload)
+    myfile = _getContents("https://www.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getProgramsFromChannels",payload)
     programs = list()
 
     if myfile is None:
@@ -109,7 +109,7 @@ def _getProgramIdsForChannel(sigla, sDate, eDate):
 
 def _getProgramDetailsById(progId):
 
-    myfile = _getContents("https://meogo.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getProgramDetails",{"service":"programdetail","accountID":"", "programID": progId })
+    myfile = _getContents("https://www.meo.pt/_layouts/15/Ptsi.Isites.GridTv/GridTvMng.asmx/getProgramDetails",{"service":"programdetail","accountID":"", "programID": progId })
     
     if myfile is None:
         return None
@@ -151,14 +151,18 @@ def _getContents(url,payload):
     handler = urllib.request.HTTPSHandler(debuglevel=0)
     opener = urllib.request.build_opener(handler)
     request = urllib.request.Request(url, data=data, headers={'Content-type': 'application/json; charset=UTF-8', 'Accept': '*/*'})
-    content = opener.open(request)
+    content = opener.open(request, timeout = 10)
 
     if content.getcode() != 200: return None
-    myfile = content.read().decode('utf8')
     try:
+        myfile = content.read()
+        myfile = myfile.decode('utf8')
         myfile = json.loads(myfile)
     except ValueError:
         logging.error("Error parsing json")
+        return None
+    except:
+        logging.error("Something went wrong here...")
         return None
 
     return myfile

@@ -46,8 +46,10 @@ if (args.debug):
 else:
     logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s', level="INFO")
 
-cList = XMLChannelList.load(channelFilename, args.provider, args.channel)
-cDict = XMLChannelList.sortByProvider(cList)
+cDict = XMLChannelList.load(channelFilename, args.provider, args.channel)
+
+if not cDict:
+    exit()
 
 nrDays = args.days
 

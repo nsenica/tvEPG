@@ -9,6 +9,7 @@ import logging
 def load(filename, filter_provider, filterChannel):
 
     if (not os.path.isfile(filename)):
+        logging.error("File not found (" + filename + ").")
         return False
 
     try:
@@ -20,7 +21,7 @@ def load(filename, filter_provider, filterChannel):
     collection = DOMTree.documentElement
     channels = collection.getElementsByTagName("channel")
 
-    channelList = []
+    channelList = defaultdict(list)
     for ch in channels:
         provider = ch.getElementsByTagName('provider')[0]
         provCode = provider.getAttribute('code')
@@ -42,14 +43,5 @@ def load(filename, filter_provider, filterChannel):
             ci.setFilename(provPath)
 
         if ci.nrChannels() > 0:
-            channelList.append(ci)
+            channelList[provider].append(ci)
     return channelList
-
-def sortByProvider(channelList):
-
-    ret = defaultdict(list)
-    for channel in channelList:
-        provider = channel.getProvider()
-        ret[provider].append(channel)
-
-    return ret
