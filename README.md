@@ -12,13 +12,13 @@ First `git clone` the repository and `cd` into it.
 
 _Optionally_, you can create a python virtual environment where the libraries will be installed:
   
- - `python3 -m venv .`
- - Start the venv by running `source bin/activate`
+ - `python3 -m venv .venv`
+ - Start the venv by running `source .venv/bin/activate`
 
 
 Some providers depend on external libraries, so you'll need to run the following to install required libraries:
 
-`pip3 install -f requirements.txt`
+`pip3 install -r requirements.txt`
 
 
 You're set to go, check the Usage section below on how to run the code
@@ -71,8 +71,8 @@ A xml file will be generated with the channels and programmes contents if no err
 
 Providers are stored in `providers` module, add one and add it to the if condition of providers in the `tvEPG.py`.
 
-Providers get a list of ChannelInfo objects and the number of days of programmes to look at. The ChannelInfo is basically the `<channel>` information.
-The provider should produce and return two lists, one for channels containing `Channel` objects and another for programmes containing `Programme` objects.
+A provider exposes a `getEPG(items, nr_days)` function: `items` is a list of ChannelInfo objects (basically the `<channel>` information) and `nr_days` is the number of days of programmes to fetch.
+The provider builds an `XMLTV` object — adding `Channel` objects via `addChannel()` and `Programme` objects via `addProgramme()` — and returns it. `tvEPG.py` merges each provider's `XMLTV` into the combined output via `addFromXMLTV()`.
 
 Dates produces by the providers need to be in the following format:
 
