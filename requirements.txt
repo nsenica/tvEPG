@@ -1,0 +1,4 @@
+beautifulsoup4==4.9.3
+bs4==0.0.1
+pytz==2020.5
+soupsieve==2.1
