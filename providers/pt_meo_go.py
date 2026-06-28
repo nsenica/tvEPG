@@ -50,10 +50,13 @@ def getEPG(list, nr_days):
                 try:
                     sTime_naive = datetime.strptime(prog["StartDate"], "%Y-%m-%dT%H:%M:%S")
                     eTime_naive = datetime.strptime(prog["EndDate"], "%Y-%m-%dT%H:%M:%S")
-                    
-                    sTime_loc = tz.localize(sTime_naive)
-                    eTime_loc = tz.localize(eTime_naive)
-                    
+
+                    # The MEO API returns times in UTC. Treat them as UTC, then
+                    # convert to Lisbon local time so the +0000/+0100 offset is
+                    # correct year-round (was off by one hour during DST/WEST).
+                    sTime_loc = pytz.utc.localize(sTime_naive).astimezone(tz)
+                    eTime_loc = pytz.utc.localize(eTime_naive).astimezone(tz)
+
                     sTime = sTime_loc.strftime("%Y%m%d%H%M%S %z")
                     eTime = eTime_loc.strftime("%Y%m%d%H%M%S %z")
                 except Exception as e:
