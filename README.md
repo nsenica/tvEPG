@@ -4,7 +4,7 @@ This EPG generator comes from the need to produce a EPG file for a channels' lis
 We always see EPG generators that grab all the channels from a provider and produce its own list, but I failed to find one that allows to chose which provider
 to use for a specific channel.
 
-This script is written in Python3 and produces a XMLTV compatible xml file, with all the channels and programmes selected.
+This script is written in Python 3 and produces a XMLTV compatible xml file, with all the channels and programmes selected. It requires Python 3.11.5 or newer because of the SoupSieve 4.0 dependency.
 
 ## Installing
 
